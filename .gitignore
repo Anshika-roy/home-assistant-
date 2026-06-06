@@ -28,3 +28,4 @@ yarn-error.log*
 Thumbs.db
 backend/pnpm-lock.yaml
 backend/data/google-calendar.json
+dashboard-web/pnpm-lock.yaml

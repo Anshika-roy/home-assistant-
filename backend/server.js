@@ -593,6 +593,57 @@ app.get('/google-calendar/status', async (req, res) => {
   }
 })
 
+app.get('/dashboard', async (req, res) => {
+  try {
+    const tasks = await readTasks()
+    const tracks = await readAll()
+
+    const completed = tasks.filter(t => t.completed).length
+    const pending = tasks.length - completed
+
+    const recentTasks = tasks
+      .sort((a, b) =>
+        new Date(b.updatedAt) - new Date(a.updatedAt)
+      )
+      .slice(0, 3)
+
+    const progress =
+      tasks.length > 0
+        ? Math.round((completed / tasks.length) * 100)
+        : 0
+
+    res.json({
+      tasks: {
+        total: tasks.length,
+        completed,
+        pending
+      },
+
+      tracks: {
+        total: tracks.length
+      },
+
+      progress,
+
+      recentTasks,
+
+      focus: {
+        improvement: 28
+      },
+
+      calendar: {
+        plannedTasks: pending
+      }
+    })
+  } catch (err) {
+    console.error('/dashboard error:', err)
+    res.status(500).json({
+      success: false,
+      error: 'internal_server_error'
+    })
+  }
+})
+
 app.delete('/google-calendar/disconnect', async (req, res) => {
   try {
     await writeGoogleCalendarState({ connected: false, calendarId: DEFAULT_CALENDAR_ID, tokens: null, updatedAt: new Date().toISOString() })
