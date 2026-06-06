@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import AIOrb from '../components/AIOrb'
 import GlassCard from '../components/GlassCard'
 import MainLayout from '../layouts/MainLayout'
 import ModuleCard from '../components/ModuleCard'
+import { fetchTracks, getTasks } from '../lib/api'
 
 const tasks = [
   { title: 'Study React', xp: '+40 XP', done: true, color: 'bg-violet-100 text-violet-700' },
@@ -10,6 +12,34 @@ const tasks = [
 ]
 
 export default function Dashboard() {
+  const [tracksCount, setTracksCount] = useState(null)
+  const [tasksCount, setTasksCount] = useState(null)
+  const [completedCount, setCompletedCount] = useState(null)
+  const [recentTasks, setRecentTasks] = useState(null)
+
+  useEffect(() => {
+    let mounted = true
+    fetchTracks(100)
+      .then((r) => { if (mounted) setTracksCount(Array.isArray(r) ? r.length : 0) })
+      .catch(() => { if (mounted) setTracksCount(0) })
+
+    getTasks()
+      .then((list) => {
+        if (!mounted) return
+        const arr = Array.isArray(list) ? list : []
+        setTasksCount(arr.length)
+        setCompletedCount(arr.filter((t) => t.completed).length)
+        setRecentTasks(arr.slice(-3).reverse())
+      })
+      .catch(() => {
+        if (!mounted) return
+        setTasksCount(0)
+        setCompletedCount(0)
+        setRecentTasks([])
+      })
+    return () => { mounted = false }
+  }, [])
+
   return (
     <MainLayout
       title="Dashboard"
@@ -40,25 +70,30 @@ export default function Dashboard() {
             <ModuleCard icon="📅" title="Calendar" value="12" description="Tasks planned" />
             <ModuleCard icon="⚡" title="Focus" value="+28%" description="Improvement" />
             <ModuleCard icon="🎯" title="Progress" value="73%" description="Daily goal" />
-            <ModuleCard icon="🏆" title="Completed" value="8/12" description="Tasks done" />
+            <ModuleCard icon="🏆" title="Tasks" value={tasksCount === null ? '—' : `${completedCount}/${tasksCount}`} description="Completed / Total" />
           </div>
 
           <GlassCard title="Today's Tasks" subtitle="3 tasks remaining">
             <div className="space-y-3">
-              {tasks.map((task) => (
-                <div key={task.title} className="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-900/70 p-4">
-                  <div className="flex items-center gap-4">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl border ${task.done ? 'border-emerald-400/60 bg-emerald-400/15 text-emerald-300' : 'border-slate-600 bg-white/5 text-slate-400'}`}>
-                      {task.done ? '✓' : '○'}
+              {(recentTasks || tasks).map((task, i) => {
+                const title = task.title || task
+                const done = typeof task.completed === 'boolean' ? task.completed : task.done
+                const xp = task.xp || (task.completed ? '+0 XP' : '')
+                return (
+                  <div key={i + title} className="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-900/70 p-4">
+                    <div className="flex items-center gap-4">
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl border ${done ? 'border-emerald-400/60 bg-emerald-400/15 text-emerald-300' : 'border-slate-600 bg-white/5 text-slate-400'}`}>
+                        {done ? '✓' : '○'}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-white">{title}</div>
+                        <div className={`mt-1 inline-flex rounded-full px-2 py-1 text-xs ${task.color || 'bg-slate-700 text-slate-300'}`}>Task</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-semibold text-white">{task.title}</div>
-                      <div className={`mt-1 inline-flex rounded-full px-2 py-1 text-xs ${task.color}`}>Task</div>
-                    </div>
+                    <div className="text-sm font-semibold text-emerald-300">{xp}</div>
                   </div>
-                  <div className="text-sm font-semibold text-emerald-300">{task.xp}</div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </GlassCard>
         </div>
