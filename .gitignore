@@ -1,7 +1,10 @@
 ﻿# Node modules
 node_modules/
 **/node_modules/
+<<<<<<< HEAD
+=======
 /backend/node_modules/
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
 
 # Build outputs
 dist/
@@ -26,6 +29,8 @@ yarn-error.log*
 # OS junk
 .DS_Store
 Thumbs.db
+<<<<<<< HEAD
+=======
 backend/pnpm-lock.yaml
 backend/data/google-calendar.json
-dashboard-web/pnpm-lock.yaml
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373

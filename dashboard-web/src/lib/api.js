@@ -73,24 +73,3 @@ export async function disconnectGoogleCalendar() {
   if (!res.ok) throw new Error(`disconnectGoogleCalendar failed: ${res.status}`)
   return res.json()
 }
-
-
-// Dashboard helpers
-
-export async function toggleTask(id, completed) {
-  return updateTask(id, {
-    completed: !completed
-  })
-}
-
-export async function getDashboardData() {
-  const [tracks, tasks] = await Promise.all([
-    fetchTracks(100),
-    getTasks()
-  ])
-
-  return {
-    tracks: Array.isArray(tracks) ? tracks : [],
-    tasks: Array.isArray(tasks) ? tasks : []
-  }
-}

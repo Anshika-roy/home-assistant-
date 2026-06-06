@@ -2,6 +2,13 @@ const express = require('express')
 const cors = require('cors')
 const fs = require('fs').promises
 const path = require('path')
+<<<<<<< HEAD
+
+const app = express()
+
+app.use(cors())
+app.use(express.json({ limit: '1mb' }))
+=======
 const cookieParser = require('cookie-parser')
 const crypto = require('crypto')
 import ('dotenv').then((dotenv) => dotenv.config())
@@ -19,6 +26,7 @@ app.use(cors({
 }))
 app.use(express.json({ limit: '1mb' }))
 app.use(cookieParser())
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
 
 const DATA_DIR = path.join(__dirname, 'data')
 const DATA_FILE = path.join(DATA_DIR, 'tracks.json')
@@ -30,6 +38,18 @@ const GOOGLE_SCOPE = 'openid profile email https://www.googleapis.com/auth/calen
 const DEFAULT_CALENDAR_ID = 'primary'
 const DEFAULT_RETURN_TO = 'http://localhost:5173/calendar'
 
+<<<<<<< HEAD
+function getAllowedReturnOrigins() {
+  const configured = process.env.GOOGLE_ALLOWED_RETURN_TO_ORIGINS || process.env.FRONTEND_URL || ''
+  const origins = configured
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+
+  return ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:4173', 'http://127.0.0.1:4173', ...origins]
+}
+
+=======
 // ── Session store (swap for Redis/DB before production) ───────────────────────
 const sessions = new Map()
 
@@ -267,6 +287,7 @@ app.get('/auth/github/callback', async (req, res) => {
 
 // ── /track ────────────────────────────────────────────────────────────────────
 
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
 async function ensureDataFile() {
   try {
     await fs.mkdir(DATA_DIR, { recursive: true })
@@ -292,10 +313,22 @@ async function readAll() {
 
 async function writeAll(data) {
   const tmp = DATA_FILE + '.tmp'
+<<<<<<< HEAD
+  const str = JSON.stringify(data, null, 2)
+  await fs.writeFile(tmp, str, { encoding: 'utf8' })
+  await fs.rename(tmp, DATA_FILE)
+}
+
+function makeId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
+}
+
+=======
   await fs.writeFile(tmp, JSON.stringify(data, null, 2), { encoding: 'utf8' })
   await fs.rename(tmp, DATA_FILE)
 }
 
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
 function validateTrackBody(body) {
   if (!body || typeof body !== 'object') return 'body must be a JSON object'
   const { deviceType, deviceId, payload, timestamp } = body
@@ -311,6 +344,10 @@ app.post('/track', async (req, res) => {
   try {
     const err = validateTrackBody(req.body)
     if (err) return res.status(400).json({ success: false, error: err })
+<<<<<<< HEAD
+
+=======
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
     const stored = await readAll()
     const entry = {
       id: makeId(),
@@ -320,8 +357,15 @@ app.post('/track', async (req, res) => {
       receivedAt: new Date().toISOString(),
       timestamp: req.body.timestamp ? new Date(req.body.timestamp).toISOString() : null,
     }
+<<<<<<< HEAD
+
     stored.push(entry)
     await writeAll(stored)
+
+=======
+    stored.push(entry)
+    await writeAll(stored)
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
     console.log('Stored track:', entry.id, entry.deviceType, entry.deviceId || '-')
     return res.status(201).json({ success: true, id: entry.id })
   } catch (err) {
@@ -334,7 +378,13 @@ app.get('/data', async (req, res) => {
   try {
     let all = await readAll()
     const { deviceType, limit } = req.query
+<<<<<<< HEAD
+    if (deviceType) {
+      all = all.filter((d) => d.deviceType === deviceType)
+    }
+=======
     if (deviceType) all = all.filter((d) => d.deviceType === deviceType)
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
     const lim = parseInt(limit, 10)
     if (!isNaN(lim) && lim > 0) all = all.slice(-lim)
     return res.json(all)
@@ -344,8 +394,11 @@ app.get('/data', async (req, res) => {
   }
 })
 
+<<<<<<< HEAD
+=======
 // ── Tasks ─────────────────────────────────────────────────────────────────────
 
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
 async function ensureTasksFile() {
   try {
     await fs.mkdir(DATA_DIR, { recursive: true })
@@ -371,7 +424,12 @@ async function readTasks() {
 
 async function writeTasks(data) {
   const tmp = TASKS_FILE + '.tmp'
+<<<<<<< HEAD
+  const str = JSON.stringify(data, null, 2)
+  await fs.writeFile(tmp, str, { encoding: 'utf8' })
+=======
   await fs.writeFile(tmp, JSON.stringify(data, null, 2), { encoding: 'utf8' })
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
   await fs.rename(tmp, TASKS_FILE)
 }
 
@@ -390,7 +448,12 @@ function validateTaskBody(body, isUpdate = false) {
 
 app.get('/tasks', async (req, res) => {
   try {
+<<<<<<< HEAD
+    const tasks = await readTasks()
+    return res.json(tasks)
+=======
     return res.json(await readTasks())
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
   } catch (err) {
     console.error('/tasks GET error:', err)
     return res.status(500).json({ success: false, error: 'internal_server_error' })
@@ -401,11 +464,29 @@ app.post('/tasks', async (req, res) => {
   try {
     const err = validateTaskBody(req.body, false)
     if (err) return res.status(400).json({ success: false, error: err })
+<<<<<<< HEAD
+
+    const tasks = await readTasks()
+    const now = new Date().toISOString()
+    const task = {
+      id: makeId(),
+      title: req.body.title,
+      column: req.body.column,
+      completed: !!req.body.completed,
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    tasks.push(task)
+    await writeTasks(tasks)
+
+=======
     const tasks = await readTasks()
     const now = new Date().toISOString()
     const task = { id: makeId(), title: req.body.title, column: req.body.column, completed: !!req.body.completed, createdAt: now, updatedAt: now }
     tasks.push(task)
     await writeTasks(tasks)
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
     return res.status(201).json(task)
   } catch (err) {
     console.error('/tasks POST error:', err)
@@ -417,12 +498,25 @@ app.put('/tasks/:id', async (req, res) => {
   try {
     const err = validateTaskBody(req.body, true)
     if (err) return res.status(400).json({ success: false, error: err })
+<<<<<<< HEAD
+
+    const tasks = await readTasks()
+    const idx = tasks.findIndex((t) => t.id === req.params.id)
+    if (idx === -1) return res.status(404).json({ success: false, error: 'not_found' })
+
+    const updated = Object.assign({}, tasks[idx], req.body, { updatedAt: new Date().toISOString() })
+    tasks[idx] = updated
+    await writeTasks(tasks)
+
+    return res.json(updated)
+=======
     const tasks = await readTasks()
     const idx = tasks.findIndex((t) => t.id === req.params.id)
     if (idx === -1) return res.status(404).json({ success: false, error: 'not_found' })
     tasks[idx] = Object.assign({}, tasks[idx], req.body, { updatedAt: new Date().toISOString() })
     await writeTasks(tasks)
     return res.json(tasks[idx])
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
   } catch (err) {
     console.error('/tasks PUT error:', err)
     return res.status(500).json({ success: false, error: 'internal_server_error' })
@@ -434,7 +528,12 @@ app.delete('/tasks/:id', async (req, res) => {
     const tasks = await readTasks()
     const idx = tasks.findIndex((t) => t.id === req.params.id)
     if (idx === -1) return res.status(404).json({ success: false, error: 'not_found' })
+<<<<<<< HEAD
+
+    const removed = tasks.splice(idx, 1)[0]
+=======
     const [removed] = tasks.splice(idx, 1)
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
     await writeTasks(tasks)
     return res.json({ success: true, id: removed.id })
   } catch (err) {
@@ -443,8 +542,11 @@ app.delete('/tasks/:id', async (req, res) => {
   }
 })
 
+<<<<<<< HEAD
+=======
 // ── Google Calendar ───────────────────────────────────────────────────────────
 
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
 async function ensureGoogleCalendarFile() {
   try {
     await fs.mkdir(DATA_DIR, { recursive: true })
@@ -474,7 +576,12 @@ async function readGoogleCalendarState() {
 
 async function writeGoogleCalendarState(state) {
   const tmp = GOOGLE_CALENDAR_FILE + '.tmp'
+<<<<<<< HEAD
+  const str = JSON.stringify(state, null, 2)
+  await fs.writeFile(tmp, str, { encoding: 'utf8' })
+=======
   await fs.writeFile(tmp, JSON.stringify(state, null, 2), { encoding: 'utf8' })
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
   await fs.rename(tmp, GOOGLE_CALENDAR_FILE)
 }
 
@@ -482,7 +589,15 @@ function getGoogleOAuthConfig() {
   const clientId = process.env.GOOGLE_CLIENT_ID
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET
   const redirectUri = process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/auth/google/callback'
+<<<<<<< HEAD
+
+  if (!clientId || !clientSecret) {
+    return null
+  }
+
+=======
   if (!clientId || !clientSecret) return null
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
   return { clientId, clientSecret, redirectUri }
 }
 
@@ -492,7 +607,14 @@ function isGoogleOAuthConfigured() {
 
 function buildGoogleAuthUrl({ state }) {
   const config = getGoogleOAuthConfig()
+<<<<<<< HEAD
+  if (!config) {
+    throw new Error('Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.')
+  }
+
+=======
   if (!config) throw new Error('Google OAuth is not configured.')
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
   const params = new URLSearchParams({
     client_id: config.clientId,
     redirect_uri: config.redirectUri,
@@ -503,12 +625,43 @@ function buildGoogleAuthUrl({ state }) {
     include_granted_scopes: 'true',
     state,
   })
+<<<<<<< HEAD
+
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
+}
+
+function safeReturnTo(input) {
+  if (!input) return DEFAULT_RETURN_TO
+
+  try {
+    const parsed = new URL(input)
+    const allowedOrigins = new Set(getAllowedReturnOrigins())
+    if ((parsed.protocol === 'http:' || parsed.protocol === 'https:') && allowedOrigins.has(parsed.origin)) {
+      return parsed.toString()
+    }
+  } catch (err) {
+    if (typeof input === 'string' && input.startsWith('/')) {
+      return `http://localhost:5173${input}`
+    }
+  }
+
+  return DEFAULT_RETURN_TO
+}
+
+async function exchangeCodeForTokens(code) {
+  const config = getGoogleOAuthConfig()
+  if (!config) {
+    throw new Error('Google OAuth is not configured.')
+  }
+
+=======
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
 }
 
 async function exchangeCodeForTokens(code) {
   const config = getGoogleOAuthConfig()
   if (!config) throw new Error('Google OAuth is not configured.')
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
   const body = new URLSearchParams({
     code,
     client_id: config.clientId,
@@ -516,39 +669,79 @@ async function exchangeCodeForTokens(code) {
     redirect_uri: config.redirectUri,
     grant_type: 'authorization_code',
   })
+<<<<<<< HEAD
+
+=======
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: body.toString(),
   })
+<<<<<<< HEAD
+
+  const payload = await response.json()
+  if (!response.ok) {
+    throw new Error(payload.error_description || payload.error || 'Failed to exchange Google auth code')
+  }
+
+=======
   const payload = await response.json()
   if (!response.ok) throw new Error(payload.error_description || payload.error || 'Failed to exchange code')
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
   return payload
 }
 
 async function refreshGoogleAccessToken(refreshToken) {
   const config = getGoogleOAuthConfig()
+<<<<<<< HEAD
+  if (!config) {
+    throw new Error('Google OAuth is not configured.')
+  }
+
+=======
   if (!config) throw new Error('Google OAuth is not configured.')
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
   const body = new URLSearchParams({
     refresh_token: refreshToken,
     client_id: config.clientId,
     client_secret: config.clientSecret,
     grant_type: 'refresh_token',
   })
+<<<<<<< HEAD
+
+=======
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: body.toString(),
   })
+<<<<<<< HEAD
+
+  const payload = await response.json()
+  if (!response.ok) {
+    throw new Error(payload.error_description || payload.error || 'Failed to refresh Google access token')
+  }
+
+=======
   const payload = await response.json()
   if (!response.ok) throw new Error(payload.error_description || payload.error || 'Failed to refresh token')
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
   return payload
 }
 
 async function getValidGoogleAccessToken() {
   const state = await readGoogleCalendarState()
   const tokens = state.tokens
+<<<<<<< HEAD
+
+  if (!tokens) {
+    return null
+  }
+=======
   if (!tokens) return null
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
 
   const expiryDate = tokens.expiryDate ? new Date(tokens.expiryDate).getTime() : 0
   if (tokens.access_token && expiryDate && expiryDate > Date.now() + 60 * 1000) {
@@ -556,7 +749,17 @@ async function getValidGoogleAccessToken() {
   }
 
   if (!tokens.refresh_token) {
+<<<<<<< HEAD
+    await writeGoogleCalendarState({
+      connected: false,
+      calendarId: state.calendarId || DEFAULT_CALENDAR_ID,
+      tokens: null,
+      updatedAt: new Date().toISOString(),
+      error: 'expired_token_no_refresh_token',
+    })
+=======
     await writeGoogleCalendarState({ connected: false, calendarId: state.calendarId || DEFAULT_CALENDAR_ID, tokens: null, updatedAt: new Date().toISOString(), error: 'expired_token_no_refresh_token' })
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
     return null
   }
 
@@ -568,10 +771,30 @@ async function getValidGoogleAccessToken() {
       refresh_token: refreshed.refresh_token || tokens.refresh_token,
       expiryDate: refreshed.expires_in ? Date.now() + refreshed.expires_in * 1000 : Date.now() + 55 * 60 * 1000,
     }
+<<<<<<< HEAD
+
+    await writeGoogleCalendarState({
+      ...state,
+      connected: true,
+      tokens: nextTokens,
+      updatedAt: new Date().toISOString(),
+    })
+
+    return nextTokens.access_token
+  } catch (err) {
+    await writeGoogleCalendarState({
+      connected: false,
+      calendarId: state.calendarId || DEFAULT_CALENDAR_ID,
+      tokens: null,
+      updatedAt: new Date().toISOString(),
+      error: 'refresh_failed',
+    })
+=======
     await writeGoogleCalendarState({ ...state, connected: true, tokens: nextTokens, updatedAt: new Date().toISOString() })
     return nextTokens.access_token
   } catch {
     await writeGoogleCalendarState({ connected: false, calendarId: state.calendarId || DEFAULT_CALENDAR_ID, tokens: null, updatedAt: new Date().toISOString(), error: 'refresh_failed' })
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
     return null
   }
 }
@@ -593,57 +816,6 @@ app.get('/google-calendar/status', async (req, res) => {
   }
 })
 
-app.get('/dashboard', async (req, res) => {
-  try {
-    const tasks = await readTasks()
-    const tracks = await readAll()
-
-    const completed = tasks.filter(t => t.completed).length
-    const pending = tasks.length - completed
-
-    const recentTasks = tasks
-      .sort((a, b) =>
-        new Date(b.updatedAt) - new Date(a.updatedAt)
-      )
-      .slice(0, 3)
-
-    const progress =
-      tasks.length > 0
-        ? Math.round((completed / tasks.length) * 100)
-        : 0
-
-    res.json({
-      tasks: {
-        total: tasks.length,
-        completed,
-        pending
-      },
-
-      tracks: {
-        total: tracks.length
-      },
-
-      progress,
-
-      recentTasks,
-
-      focus: {
-        improvement: 28
-      },
-
-      calendar: {
-        plannedTasks: pending
-      }
-    })
-  } catch (err) {
-    console.error('/dashboard error:', err)
-    res.status(500).json({
-      success: false,
-      error: 'internal_server_error'
-    })
-  }
-})
-
 app.delete('/google-calendar/disconnect', async (req, res) => {
   try {
     await writeGoogleCalendarState({ connected: false, calendarId: DEFAULT_CALENDAR_ID, tokens: null, updatedAt: new Date().toISOString() })
@@ -657,7 +829,13 @@ app.delete('/google-calendar/disconnect', async (req, res) => {
 app.get('/google-calendar/events', async (req, res) => {
   try {
     const accessToken = await getValidGoogleAccessToken()
+<<<<<<< HEAD
+    if (!accessToken) {
+      return res.status(401).json({ success: false, error: 'google_calendar_not_connected' })
+    }
+=======
     if (!accessToken) return res.status(401).json({ success: false, error: 'google_calendar_not_connected' })
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
 
     const state = await readGoogleCalendarState()
     const calendarId = req.query.calendarId ? String(req.query.calendarId) : state.calendarId || DEFAULT_CALENDAR_ID
@@ -671,6 +849,29 @@ app.get('/google-calendar/events', async (req, res) => {
       timeMin: new Date().toISOString(),
     })
 
+<<<<<<< HEAD
+    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+
+    const payload = await response.json()
+    if (!response.ok) {
+      return res.status(response.status).json({
+        success: false,
+        error: payload.error?.message || payload.error || 'google_calendar_fetch_failed',
+      })
+    }
+
+    await writeGoogleCalendarState({
+      ...state,
+      connected: true,
+      calendarId,
+      updatedAt: new Date().toISOString(),
+    })
+
+=======
     const response = await fetch(
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params.toString()}`,
       { headers: { Authorization: `Bearer ${accessToken}` } }
@@ -679,6 +880,7 @@ app.get('/google-calendar/events', async (req, res) => {
     if (!response.ok) return res.status(response.status).json({ success: false, error: payload.error?.message || 'google_calendar_fetch_failed' })
 
     await writeGoogleCalendarState({ ...state, connected: true, calendarId, updatedAt: new Date().toISOString() })
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
     return res.json(payload)
   } catch (err) {
     console.error('/google-calendar/events error:', err)
@@ -686,7 +888,60 @@ app.get('/google-calendar/events', async (req, res) => {
   }
 })
 
+<<<<<<< HEAD
+app.get('/auth/google/start', (req, res) => {
+  try {
+    const returnTo = safeReturnTo(req.query.returnTo)
+    const state = Buffer.from(JSON.stringify({ returnTo, nonce: makeId() }), 'utf8').toString('base64url')
+    return res.redirect(buildGoogleAuthUrl({ state }))
+  } catch (err) {
+    console.error('/auth/google/start error:', err)
+    return res.status(503).send('Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.')
+  }
+})
+
+app.get('/auth/google/callback', async (req, res) => {
+  try {
+    const { code, state, error } = req.query
+    if (error) return res.status(400).send(`Google auth failed: ${error}`)
+    if (!code || !state) return res.status(400).send('Missing Google auth code or state.')
+
+    let parsedState = {}
+    try {
+      parsedState = JSON.parse(Buffer.from(String(state), 'base64url').toString('utf8'))
+    } catch (err) {
+      parsedState = {}
+    }
+
+    const tokenResponse = await exchangeCodeForTokens(String(code))
+    const existingState = await readGoogleCalendarState()
+    const storedTokens = {
+      ...existingState.tokens,
+      ...tokenResponse,
+      refresh_token: tokenResponse.refresh_token || existingState.tokens?.refresh_token || null,
+      expiryDate: tokenResponse.expires_in ? Date.now() + tokenResponse.expires_in * 1000 : Date.now() + 55 * 60 * 1000,
+    }
+
+    await writeGoogleCalendarState({
+      connected: true,
+      calendarId: existingState.calendarId || DEFAULT_CALENDAR_ID,
+      tokens: storedTokens,
+      connectedAt: existingState.connectedAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })
+
+    const returnTo = safeReturnTo(parsedState.returnTo)
+    const redirectUrl = new URL(returnTo)
+    redirectUrl.searchParams.set('googleConnected', '1')
+    return res.redirect(redirectUrl.toString())
+  } catch (err) {
+    console.error('/auth/google/callback error:', err)
+    return res.status(500).send('Failed to connect Google Calendar.')
+  }
+})
+=======
 // ── Start ─────────────────────────────────────────────────────────────────────
+>>>>>>> dc23d5bc8fc7d3b5464c749ebe9b020f5d82f373
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
