@@ -1,5 +1,6 @@
 {
     "conventionalCommits.scopes": [
         "Dashboard"
-    ]
+    ],
+    "liveServer.settings.port": 5501
 }
